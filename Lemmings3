@@ -18,13 +18,14 @@ module top_module(
 		else 
             next_state[1] <= nofall;
         
-        if (ground && (dig | next_state[2] == dig_act)) next_state[2] <= dig_act;
+        if (ground && dig & ~state[1]) next_state[2] <= dig_act;
+        else if (ground && (state[2] == dig_act)) next_state[2] <= dig_act;
         else next_state[2] <= nodig_act;
         
-        if(state[1] | ~ground) 
+        if(state[1] | ~ground | state[2] | dig) 
             next_state[0] <= state[0];
         else begin
-            if(~state[0]&bump_left) next_state[0] <= right;
+            if(~state[0] &&bump_left) next_state[0] <= right;
             else if(state[0] & bump_right) next_state[0] <= left;
         end
     end
