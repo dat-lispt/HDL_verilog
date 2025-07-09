@@ -1,1 +1,56 @@
-
+module top_module(
+    input clk,
+    input areset,    // Freshly brainwashed Lemmings walk left.
+    input bump_left,
+    input bump_right,
+    input ground,
+    input dig,
+    output walk_left,
+    output walk_right,
+    output aaah,
+    output digging ); 
+    
+    parameter left= 0, right =1, fall=1, nofall= 0, dig_act =1, nodig_act = 0;
+    integer fall_timer = 0;
+    reg [3:0] state, next_state;
+    reg alive = 1;
+    always @* begin
+        next_state <= state;
+		if(!ground)
+        	next_state[1] <= fall;
+		else 
+            next_state[1] <= nofall;
+        
+        if (ground && dig & ~state[1]) next_state[2] <= dig_act;
+        else if (ground && (state[2] == dig_act)) next_state[2] <= dig_act;
+        else next_state[2] <= nodig_act;
+        
+        if(state[1] | ~ground | state[2] | dig) 
+            next_state[0] <= state[0];
+        else begin
+            if(~state[0] &&bump_left) next_state[0] <= right;
+            else if(state[0] & bump_right) next_state[0] <= left;
+        end
+    end
+    
+    always @(posedge clk, posedge areset)begin
+        if(areset) begin
+            state <= left;
+            alive = 1;
+            fall_timer <= 0;
+    	end
+        else begin
+            if(next_state[1] == fall)
+                fall_timer <= fall_timer + 1;
+            else begin
+                fall_timer <= 0;
+                alive <= (fall_timer <= 20) ? alive: 0;
+            end
+            state <= next_state;
+        end
+    end
+    assign walk_left = ~state[0] & ~state[1] & ~state[2] && alive;
+    assign walk_right = state[0] & ~state[1] & ~state[2]&& alive ;
+    assign aaah = state[1]&& alive;
+    assign digging = state[2]&& alive;
+endmodule
