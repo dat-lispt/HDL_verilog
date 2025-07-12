@@ -1,0 +1,68 @@
+module top_module(
+    input clk,
+    input in,
+    input reset,    // Synchronous reset
+    output [7:0] out_byte,
+    output done
+); //
+
+    // Modify FSM and datapath from Fsm_serialdata
+    parameter parse_check = 3'b101;
+    integer bit_amount = 0;
+    reg [2:0] state, next_state;
+    reg [7:0] saving_bit= 0;
+    wire parity_reset, odd_detector;
+    always @* begin 
+        case(state)
+            3'b000: next_state = ~in ? 3'b100 : 3'b000 ;
+            3'b100: next_state = 3'b001;
+            3'b001: next_state = (bit_amount == 8) ? parse_check: 3'b001;
+            parse_check: next_state = in ? 3'b010: 3'b011;
+            3'b011: next_state =  in ? 3'b000 : 3'b011; //error
+            3'b010: next_state = in ?  3'b000: 3'b100; //done output
+            default: next_state = 3'b000;
+        endcase
+    end
+    
+    assign parity_reset = reset | (next_state == 3'b100);
+    parity checking(clk,parity_reset,in, odd_detector);
+    
+    always @(posedge clk) begin
+        if(reset) begin
+            state <= 3'b000;
+            bit_amount <= 0;
+            saving_bit <=0;
+            done <= 0;
+        end
+        else begin
+            state <= next_state; 
+            if(next_state == 3'b010)
+            	done <= odd_detector;
+            else 
+                done <= 0;
+            out_byte <= (next_state == 3'b010) ? saving_bit:8'b0;
+            if (next_state == 3'b001) begin
+                bit_amount = bit_amount + 1;
+                saving_bit = saving_bit | (in<<(bit_amount -1));
+            end
+            else if (next_state == 3'b100 ) begin
+                bit_amount <= 0;
+                saving_bit <= 0;
+            end
+        end
+    end   
+    // New: Add parity checking.
+
+endmodule
+
+module parity (
+    input clk,
+    input reset,
+    input in,
+    output reg odd);
+
+    always @(posedge clk)
+        if (reset) odd <= 0;
+        else if (in) odd <= ~odd;
+
+endmodule
