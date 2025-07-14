@@ -1,0 +1,56 @@
+module top_module(
+    input clk,
+    input reset,    // Synchronous reset
+    input in,
+    output disc,
+    output flag,
+    output err);
+	
+    //paremeter discard = 7'b11111, flag = 7'b111111, over = 7'b1111111;
+    integer cnt = 1;
+    parameter search = 3'b000, checking = 3'b001, no_discard = 3'b101, is_error = 3'b110,
+    	discarding = 3'b010, flagging =3'b011, error = 3'b100;
+    reg [2:0]state= search, next_state;
+    always @* begin
+		case (state)
+            search: next_state <= in ? checking : search ;
+            checking: next_state <= (cnt < 6) ? (!in ? search: checking) : ( !in ? discarding : no_discard);
+            no_discard: next_state <= !in ? flagging : error;
+            discarding: next_state <= in ? checking : search;
+            flagging:next_state <= in ? checking : search;
+            error:next_state <= !in ? search: error;
+			default: next_state <= search;
+		endcase   
+    end
+    
+    always @(posedge clk) begin
+        if(reset) begin
+            state = search;
+            disc <= 0;
+            flag <= 0;
+            err <= 0; 
+			cnt <= 1;
+        end
+        else begin
+        	case(next_state)
+            	search: begin
+                	disc <= 0;
+                	flag <= 0;
+                	err <= 0; 
+                	cnt <=1;
+            	end 
+            	checking: begin
+                	disc <= 0;
+                	flag <= 0;
+                	err <= 0; 
+                	cnt <=cnt + 1;
+            	end 
+    	        no_discard: cnt <= cnt +1;
+                discarding: begin disc <= 1; cnt = 1; end
+                flagging: begin flag <= 1; cnt = 1; end
+                error: begin err <= 1; cnt = 1; end
+        	endcase
+            state <= next_state;
+        end
+    end
+endmodule
