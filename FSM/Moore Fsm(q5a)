@@ -1,0 +1,34 @@
+// calculate second compliment of input upon areset released and stop upon areset activate
+module top_module (
+    input clk,
+    input areset,
+    input x,
+    output z
+); 
+
+    parameter off_mode = 2'b00, least_sig = 2'b01, one_remainder = 2'b10, inversing = 2'b11;
+    reg [1:0] state, next_state;
+
+    always @* begin
+       case(state)
+            least_sig: next_state =  !x? one_remainder: inversing;
+            one_remainder: next_state =  x?	inversing : one_remainder ;
+            inversing: next_state = inversing;
+            default: next_state  = least_sig;
+       endcase 
+    end
+
+    always @(posedge clk, posedge areset) begin
+        if (areset) begin
+            state <= least_sig;
+            z = 0;
+        end
+        else begin
+            state <= next_state;
+            if((state == least_sig) || (next_state == one_remainder))
+                z <= x;
+            else if(next_state == inversing) 
+                z <= (state == one_remainder) ? x : ~x;
+        end
+    end
+endmodule
