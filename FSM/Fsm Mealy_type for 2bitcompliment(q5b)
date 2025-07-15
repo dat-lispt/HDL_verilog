@@ -1,4 +1,4 @@
-## This code took from [HDLBits-Solutions](https://github.com/Adrofier/HDLBits-Verilog-Solutions/blob/main/2.%20Circuits/2.%20Sequential%20Logic/5.%20Finite%20State%20Machines/23_Q5bSerialTwoComplementer(Mealy).v)
+// This code uses the baseline from [HDLBits-Solutions](https://github.com/Adrofier/HDLBits-Verilog-Solutions/blob/main/2.%20Circuits/2.%20Sequential%20Logic/5.%20Finite%20State%20Machines/23_Q5bSerialTwoComplementer(Mealy).v)
 module top_module (
     input clk,
     input areset,
