@@ -1,0 +1,23 @@
+// clk isn't used for the test, all value is updated upon input change/provided
+module top_module (
+    input clk,
+    input [2:0] y,
+    input x,
+    output Y0,
+    output z
+);
+    parameter a = 3'b000, b = 3'b001, c = 3'b010, d = 3'b011, e = 3'b100;
+    reg [2:0] state;
+    always @(*) begin
+        case(y)
+            a: state = x ? b:a;
+            b: state = x ? e:b;
+            c: state = x ? b:c;
+            d: state = x ? c:b;
+            e: state = x ? e:d;
+            default: state = a;
+        endcase
+    end
+    assign Y0 = state[0];
+    assign z = (y == d) | ( y == e);
+endmodule
