@@ -1,0 +1,41 @@
+module top_module (
+    input clk,
+    input resetn,    // active-low synchronous reset
+    input x,
+    input y,
+    output f,
+    output g
+); 
+    parameter A = 3'b00, A_0 = 3'b01, A_1 = 3'b10, A_2 = 3'b011, B= 3'b100, perma_on = 3'b101,
+    perma_off = 3'b110, A_out = 3'b111; 
+    reg [2:0] state, next_state;
+    integer cnt = 0;  //counting # of cycles
+    always @* begin
+        case(state)
+            A: next_state = A_out;          //reset state
+            A_out: next_state = A_0;        //transistion state
+            A_0: next_state = x ? A_1: A_0; // Check for 101 pattern A_0 to A_2
+            A_1: next_state = x ? A_1: A_2;
+            A_2: next_state = x ? B: A_0;
+            B: next_state = (cnt < 2) ? (y ? perma_on: B) : (y ? perma_on: perma_off); //within 2 cycles, if y = 1 then g= 1 permanently. Else g= 0 permanently
+            perma_on: next_state = perma_on;
+            perma_off: next_state = perma_off;
+            default: next_state = A;
+        endcase
+    end
+
+    always @(posedge clk) begin
+        if(~resetn) begin
+            state<= A;
+            cnt = 0;
+        end
+        else begin
+            state <= next_state;
+            if(next_state == B) begin
+                cnt = cnt +1;     // start counting when transition to B state
+            end
+        end
+    end
+    assign g = (state == B) | (state == perma_on);  //output logic
+    assign f = (state == A_out);
+endmodule
