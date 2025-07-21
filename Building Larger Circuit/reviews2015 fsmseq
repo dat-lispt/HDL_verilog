@@ -1,0 +1,26 @@
+module top_module (
+    input clk,
+    input reset,      // Synchronous reset
+    input data,
+    output start_shifting);
+
+    parameter first_one = 3'b000, second_one = 3'b1, third_zero = 3'b10, final_one = 3'b11, 
+        perma_shift = 3'b100;
+    reg [2:0] state, next_state;
+
+    always @(posedge clk) begin
+        if(reset)
+            state = first_one;
+        else begin
+            case(state)            // sequence is 1101
+                first_one: state = data ? second_one: first_one;  
+                second_one: state = data ? third_zero: first_one;  
+                third_zero: state = data ? third_zero:final_one;    //if data = 1 at this state, you know previous -> 1 1 <- current, overlapping pattern
+                final_one: state = data ? perma_shift: first_one;
+                perma_shift: state = perma_shift;
+                default: state = first_one;
+            endcase
+        end
+    end
+    assign start_shifting = (state == perma_shift);
+endmodule
