@@ -1,0 +1,27 @@
+module top_module (
+    input clk,
+    input reset,      // Synchronous reset
+    output shift_ena);
+
+    parameter on = 1, off = 0;
+    integer cnt = 0;
+    reg state = 0;
+    always @(posedge clk) begin
+        if(reset)    state = on;
+        case(state)
+            on: state = (cnt <4) ? on : off;
+            off: state = off;
+        endcase
+
+        case(state)
+            on: begin
+                cnt = cnt+ 1;
+                shift_ena = 1;
+            end
+            off: begin
+                cnt = 0;
+                shift_ena = 0;
+            end
+        endcase
+    end
+endmodule
