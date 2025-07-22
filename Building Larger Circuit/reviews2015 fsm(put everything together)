@@ -1,0 +1,45 @@
+module top_module (
+    input clk,
+    input reset,      // Synchronous reset
+    input data,
+    output shift_ena,
+    output counting,
+    input done_counting,
+    output done,
+    input ack );
+    parameter first_one = 4'b000, second_one = 4'b1, third_zero = 4'b10, final_one = 4'b11, 
+    shift_on = 4'b100, counting_on = 4'b101, await_ack = 4'b110; 
+    integer cnt = 0;
+
+    reg [3:0] state, next_state;
+
+    always @(posedge clk) begin
+        if(reset)
+            state = first_one;
+        else begin
+            case(state)
+                first_one: state = data ? second_one: first_one;
+                second_one: state = data ? third_zero: first_one;
+                third_zero: state = data ? third_zero:final_one;
+                final_one: state = data ? shift_on: first_one;
+                shift_on: state = cnt < 4 ? shift_on : counting_on;
+                counting_on: state = done_counting ? await_ack : counting_on;
+                await_ack: state = ack ? first_one: await_ack;
+                default: state = first_one;
+            endcase
+
+            case(state)
+                shift_on: begin
+                    cnt = cnt+ 1;
+                end
+                default: begin
+                    cnt = 0;
+                end
+            endcase
+        end
+    end
+
+    assign counting = (state == counting_on);
+    assign done = (state == await_ack);
+    assign shift_ena = (state == shift_on);
+endmodule
