@@ -1,0 +1,62 @@
+module top_module (
+    input clk,
+    input reset,      // Synchronous reset
+    input data,
+    output [3:0] count,
+    output counting,
+    output done,
+    input ack );
+
+     parameter first_one = 4'b000, second_one = 4'b001, third_zero = 4'b010, final_one = 4'b011, shift0 = 4'b1001,
+        shift1 = 4'b100, shift2 = 4'b101, shift3 = 4'b110, delaying = 4'b111, ack_wait = 4'b1000;
+
+    reg [3:0] state, next_state;
+    reg [9:0] count_1000 = 10'b0;
+    
+    always @* begin
+    	case(state)
+			first_one: next_state = data ? second_one: first_one;
+            second_one: next_state = data ? third_zero: first_one;
+            third_zero: next_state = data ? third_zero: final_one;
+            final_one: next_state = data ? shift0: first_one;
+            shift0: next_state = shift1;
+            shift1: next_state = shift2;
+            shift2: next_state = shift3;
+            shift3: next_state = delaying;
+            delaying: next_state = (count == 0 && count_1000 == 999) ? ack_wait:delaying; 
+            ack_wait: next_state = ack ? first_one: ack_wait;
+            default: next_state = first_one;
+		endcase
+    end
+    
+    always @(posedge clk) begin
+        if(reset) begin
+            state <= first_one;
+            count_1000 <= 0;
+        end
+        else begin
+            state <= next_state;
+            case(state)
+                shift0: count[3] <= data;
+                shift1: count[2] <= data;
+                shift2: count[1] <= data;
+                shift3: count[0] <= data;
+                delaying: begin
+                    if(count >= 0) begin
+                    	if( count_1000 < 999)
+                        	count_1000 <= count_1000 + 1'b1;
+						else begin
+                        	count <= count -1'b1;
+                        	count_1000 <= 0;
+                        end
+                    end
+                end
+                default: count_1000 = 0;
+            endcase
+        end
+    end
+
+    assign counting = (state == delaying);
+    assign done = (state == ack_wait);
+endmodule
+
