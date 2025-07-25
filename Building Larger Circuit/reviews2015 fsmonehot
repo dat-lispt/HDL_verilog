@@ -23,7 +23,7 @@ module top_module(
         for (i =0; i < 10; i = i +1) begin
             if(state[i]) begin
             	case(i)
-                	S: next_state = next_state | (d ? 1<<S1:1<<S);
+                	S: next_state = next_state | (d ? 1<<S1:1<<S);                            // NOTE(better and cleaner code) => S: next_state[d ? S1:S] = 1;
                 	S1: next_state = next_state | (d ? 1<<S11: 1<<S);
                 	S11: next_state = next_state | (d ? 1<<S11: 1<<S110);
                 	S110: next_state = next_state | (d ? 1<<B0 : 1<<S);
