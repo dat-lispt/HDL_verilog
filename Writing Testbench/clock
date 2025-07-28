@@ -1,0 +1,16 @@
+module top_module ( );
+	reg clk;
+    dut testing( .clk(clk));
+    int i;
+
+    task test_1(); // no clue on how to set it up to run by itself forever
+        for(i = 0; i < 10000; i = i+1) begin 
+        	#5 clk <= ~clk;
+        end
+    endtask
+    
+    initial begin
+        clk <= 0;
+        test_1();
+    end
+endmodule
