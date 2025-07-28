@@ -1,0 +1,19 @@
+module top_module (
+    input clock,
+    input a,
+    output p,
+    output q );
+    
+    always @(*) begin
+        if(clock)
+            p <= a;
+        else if (p == 1) begin
+            p <= 1;
+            q <= 1;
+        end
+        else begin
+            p <= 0;
+            q <= 0;
+        end
+    end
+endmodule
