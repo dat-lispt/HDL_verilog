@@ -1,0 +1,22 @@
+module top_module (
+    input clk,
+    input a,
+    output [3:0] q );
+    reg state, next_state;
+    parameter looping = 1'b0, stucking = 1'b1; 
+	always @* begin
+        case(state)
+            looping: next_state = a ? stucking : looping;
+            stucking: next_state = a ? stucking : looping;
+            default: next_state = looping;
+        endcase
+    end
+    always @(posedge clk) begin
+        state <= next_state;
+        case(next_state)
+            looping: q <= (q == 6) ? 0 : (q + 1);
+            stucking: q <= 4;
+            default: q =0;
+        endcase
+    end
+endmodule
