@@ -1,0 +1,19 @@
+module top_module();
+    reg [1:0] in;
+    wire out;
+    andgate u0 ( .in(in),
+                .out(out)
+               );
+    
+    task test1();
+        #10 in[0] =1;
+        #10 in = 2'b10;
+        #10 in[0] = 1;
+    endtask
+    
+    initial begin
+        in = 2'b0;
+        test1();
+    end
+    
+endmodule
