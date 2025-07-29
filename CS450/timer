@@ -1,0 +1,35 @@
+module top_module(
+	input clk, 
+	input load, 
+	input [9:0] data, 
+	output tc
+);
+    //parameter load_off = 0, load_on = 1, count_down = 2, stuck = 3;
+    //reg  [1:0] state, next_state;
+    reg [9:0] counter = 1;
+    /*always @* begin
+        case(state)
+        	load_off:next_state = load ? load_on: load_off;
+            load_on: next_state = load? load_on: count_down;
+            count_down: next_state = (counter == 0) ? stuck:(load ? load_on: count_down);
+            stuck: next_state = load ? load_on: stuck;
+            default: next_state = load_off;
+        endcase
+    end
+    always @(posedge clk) begin
+        state <= next_state;
+        case(next_state)
+            load_on: counter = data;
+            count_down: counter = (counter > 0) ? (counter -1) : 0;
+			default: counter = counter;
+        endcase
+    end*/
+    always @(posedge clk) begin
+        if(load)
+            counter = data;
+        else begin
+            counter = (counter == 10'b0) ? 0: counter - 1;
+        end
+    end
+    assign tc = (counter == 0);
+endmodule
