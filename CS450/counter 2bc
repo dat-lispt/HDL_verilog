@@ -1,0 +1,24 @@
+module top_module(
+    input clk,
+    input areset,
+    input train_valid,
+    input train_taken,
+    output [1:0] state
+);
+    parameter snt = 2'b00, wnt = 2'b01, wt = 2'b10, st = 2'b11;
+    reg [1:0] curr = snt, next_state;
+    always @* begin
+        case(state)
+             snt: next_state = train_valid ? (train_taken ? wnt : snt): snt;
+             wnt: next_state = train_valid ? (train_taken ? wt : snt): wnt;
+             wt: next_state = train_valid ? (train_taken ? st : wnt): wt;
+             st: next_state =  train_valid ? (train_taken ? st: wt): st;
+             default: next_state = snt;
+         endcase
+    end
+    always @(posedge clk, posedge areset) begin
+        if(areset) state = wnt;
+        else state = next_state;
+    end
+    //assign state = next_state;
+endmodule
